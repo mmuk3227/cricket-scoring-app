@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Scorer Pro - Professional Cricket Scoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .cricket-field {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .score-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        
+        .score-button:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .score-button:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+        
+        .player-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .player-card:hover::before {
+            left: 100%;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .ball-indicator {
+            animation: ballBounce 0.6s ease-out;
+        }
+        
+        @keyframes ballBounce {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+        }
+        
+        .wicket-fall {
+            animation: wicketFall 0.8s ease-out;
+        }
+        
+        @keyframes wicketFall {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(-15deg) scale(0.9); }
+            50% { transform: rotate(15deg) scale(0.8); }
+            75% { transform: rotate(-5deg) scale(0.9); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+        
+        .boundary-hit {
+            animation: boundaryCelebration 1s ease-out;
+        }
+        
+        @keyframes boundaryCelebration {
+            0% { transform: scale(1); background-color: #10b981; }
+            25% { transform: scale(1.3); background-color: #34d399; }
+            50% { transform: scale(1.1); background-color: #10b981; }
+            75% { transform: scale(1.2); background-color: #34d399; }
+            100% { transform: scale(1); background-color: #10b981; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="min-h-screen cricket-field">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-20"></div>
+        <div class="container mx-auto px-4 py-6 relative z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-cricket text-4xl animate-spin" style="animation-duration: 8s;"></i>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full pulse-animation"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold tracking-tight">Cricket Scorer Pro</h1>
+                        <p class="text-sm opacity-90">Professional Cricket Scoring System</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div id="matchStatus" class="bg-white/20 px-4 py-2 rounded-full text-sm font-medium backdrop-blur">
+                            Match Setup
+                        </div>
+                        <div id="matchTime" class="text-xs opacity-75 mt-1">
+                            <i class="far fa-clock mr-1"></i>
+                            <span id="currentTime">00:00:00</span>
+                        </div>
+                    </div>
+                    <button onclick="resetMatch()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-300 hover:scale-105 shadow-lg">
+                        <i class="fas fa-redo mr-2"></i>New Match
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Match Setup Section -->
+        <section id="matchSetup" class="mb-8 fade-in">
+            <div class="glass-effect rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-cog text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800">Match Configuration</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-trophy mr-2 text-yellow-500"></i>Match Type
+                        </label>
+                        <select id="matchType" onchange="updateMatchType()" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+                            <option value="t20">T20 (20 overs)</option>
+                            <option value="odi">ODI (50 overs)</option>
+                            <option value="test">Test (Unlimited overs)</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-clock mr-2 text-blue-500"></i>Overs per Innings
+                        </label>
+                        <input type="number" id="totalOvers" value="20" min="1" max="100" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-users mr-2 text-green-500"></i>Players per Team
+                        </label>
+                        <input type="number" id="playersPerTeam" value="11" min="2" max="15" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button onclick="startMatch()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl">
+                        <i class="fas fa-play mr-3"></i>Start Match
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Setup Section -->
+        <section id="teamSetup" class="mb-8 hidden">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Team 1 -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-6 slide-in">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Team 1</h3>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <input type="text" id="team1Name" placeholder="Enter team name" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                    
+                    <div id="team1Players" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                        <!-- Players will be added here -->
+                    </div>
+                </div>
+
+                <!-- Team 2 -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-6 slide-in" style="animation-delay: 0.2s;">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Team 2</h3>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <input type="text" id="team2Name" placeholder="Enter team name" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-300">
+                    </div>
+                    
+                    <div id="team2Players" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                        <!-- Players will be added here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button onclick="beginFirstInnings()" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-10 py-4 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl">
+                    <i class="fas fa-baseball-ball mr-3"></i>Begin First Innings
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Scoring Interface -->
+        <section id="scoringInterface" class="hidden">
+            <!-- Score Summary Dashboard -->
+            <div class="glass-effect rounded-2xl shadow-2xl p-8 mb-8 fade-in">
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="text-center group">
+                        <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-cricket text-white text-2xl"></i>
+                        </div>
+                        <div id="totalScore" class="text-4xl font-bold score-display mb-2">0/0</div>
+                        <div class="text-sm text-gray-600 font-medium">Score/Wickets</div>
+                    </div>
+                    
+                    <div class="text-center group">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-clock text-white text-2xl"></i>
+                        </div>
+                        <div id="oversCount" class="text-4xl font-bold text-blue-600 mb-2">0.0</div>
+                        <div class="text-sm text-gray-600 font-medium">Overs</div>
+                    </div>
+                    
+                    <div class="text-center group">
+                        <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        </div>
+                        <div id="runRate" class="text-4xl font-bold text-purple-600 mb-2">0.00</div>
+                        <div class="text-sm text-gray-600 font-medium">Run Rate</div>
+                    </div>
+                    
+                    <div class="text-center group">
+                        <div class="w-16 h-16 bg-gradient-to-r from-orange-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300">
+                            <i class="fas fa-bullseye text-white text-2xl"></i>
+                        </div>
+                        <div id="target" class="text-4xl font-bold text-orange-600 mb-2">-</div>
+                        <div class="text-sm text-gray-600 font-medium">Target</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Players -->
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <!-- Striker -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-6 player-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">
+                            <i class="fas fa-batting mr-2 text-green-500"></i>Striker
+                        </h3>
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-bat text-white text-sm"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-lg" id="strikerName">-</span>
+                            <span class="text-gray-600 font-semibold" id="strikerRuns">(0 runs)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Balls:</span>
+                                <span id="strikerBalls" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">4s:</span>
+                                <span id="strikerFours" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">6s:</span>
+                                <span id="strikerSixes" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">SR:</span>
+                                <span id="strikerSR" class="font-bold ml-2">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Non-Striker -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-6 player-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">
+                            <i class="fas fa-batting mr-2 text-blue-500"></i>Non-Striker
+                        </h3>
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-bat text-white text-sm"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-lg" id="nonStrikerName">-</span>
+                            <span class="text-gray-600 font-semibold" id="nonStrikerRuns">(0 runs)</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Balls:</span>
+                                <span id="nonStrikerBalls" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">4s:</span>
+                                <span id="nonStrikerFours" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">6s:</span>
+                                <span id="nonStrikerSixes" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">SR:</span>
+                                <span id="nonStrikerSR" class="font-bold ml-2">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Bowler -->
+                <div class="glass-effect rounded-2xl shadow-2xl p-6 player-card">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-gray-800">
+                            <i class="fas fa-baseball-ball mr-2 text-red-500"></i>Current Bowler
+                        </h3>
+                        <div class="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-baseball-ball text-white text-sm"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="font-bold text-lg" id="bowlerName">-</div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Overs:</span>
+                                <span id="bowlerOvers" class="font-bold ml-2">0.0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Runs:</span>
+                                <span id="bowlerRuns" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Wickets:</span>
+                                <span id="bowlerWickets" class="font-bold ml-2">0</span>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-2">
+                                <span class="text-gray-600">Economy:</span>
+                                <span id="bowlerEconomy" class="font-bold ml-2">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scoring Controls -->
+            <div class="glass-effect rounded-2xl shadow-2xl p-8 mb-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-cricket text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800">Scoring Controls</h3>
+                </div>
+                
+                <!-- Run Buttons -->
+                <div class="grid grid-cols-6 gap-4 mb-6">
+                    <button onclick="addRuns(0)" class="score-button bg-gray-500 hover:bg-gray-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        <i class="fas fa-circle mr-2"></i>Dot Ball
+                    </button>
+                    <button onclick="addRuns(1)" class="score-button bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        1 Run
+                    </button>
+                    <button onclick="addRuns(2)" class="score-button bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        2 Runs
+                    </button>
+                    <button onclick="addRuns(3)" class="score-button bg-blue-500 hover:bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        3 Runs
+                    </button>
+                    <button onclick="addRuns(4)" class="score-button bg-green-500 hover:bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        4 Runs
+                    </button>
+                    <button onclick="addRuns(6)" class="score-button bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg">
+                        6 Runs
+                    </button>
+                </div>
+
+                <!-- Special Events -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <button onclick="addWide()" class="score-button bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-arrows-alt-h mr-2"></i>Wide
+                    </button>
+                    <button onclick="addNoBall()" class="score-button bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>No Ball
+                    </button>
+                    <button onclick="addByes()" class="score-button bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-walking mr-2"></i>Byes
+                    </button>
+                    <button onclick="addLegByes()" class="score-button bg-indigo-500 hover:bg-indigo-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-running mr-2"></i>Leg Byes
+                    </button>
+                </div>
+
+                <!-- Wicket Controls -->
+                <div class="grid grid-cols-3 gap-4">
+                    <button onclick="showWicketDialog()" class="score-button bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-skull mr-2"></i>Wicket
+                    </button>
+                    <button onclick="swapStriker()" class="score-button bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-exchange-alt mr-2"></i>Rotate Strike
+                    </button>
+                    <button onclick="undoLastBall()" class="score-button bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl font-bold shadow-lg">
+                        <i class="fas fa-undo mr-2"></i>Undo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Over Summary -->
+            <div class="glass-effect rounded-2xl shadow-2xl p-8 mb-8">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center">
+                        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-list text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Current Over</h3>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span id="overNumber">Over 1</span>
+                    </div>
+                </div>
+                
+                <div id="currentOverBalls" class="flex flex-wrap gap-3 mb-6">
+                    <!-- Ball indicators will be added here -->
+                </div>
+                
+                <div class="border-t pt-4">
+                    <h4 class="font-semibold text-gray-700 mb-3">Ball Commentary</h4>
+                    <div id="ballByBallCommentary" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                        <!-- Ball commentary will be added here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scorecard Section -->
+        <section id="scorecard" class="hidden fade-in">
+            <div class="glass-effect rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-table text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800">Scorecard</h3>
+                </div>
+                
+                <!-- Batting Scorecard -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">
+                        <i class="fas fa-batting mr-2 text-green-500"></i>Batting
+                    </h4>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Batsman</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Runs</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Balls</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">4s</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">6s</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">SR</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">How Out</th>
+                                </tr>
+                            </thead>
+                            <tbody id="battingScorecard">
+                                <!-- Batting stats will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Bowling Scorecard -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-gray-700">
+                        <i class="fas fa-baseball-ball mr-2 text-red-500"></i>Bowling
+                    </h4>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                                    <th class="border border-gray-300 px-4 py-3 text-left font-semibold">Bowler</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Overs</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Runs</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Wickets</th>
+                                    <th class="border border-gray-300 px-4 py-3 text-center font-semibold">Economy</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bowlingScorecard">
+                                <!-- Bowling stats will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Wicket Dialog -->
+    <div id="wicketDialog" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-skull text-white text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800">Wicket Fall</h3>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">How Out?</label>
+                    <select id="wicketType" onchange="updateWicketType()" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <option value="bowled">Bowled</option>
+                        <option value="caught">Caught</option>
+                        <option value="lbw">LBW</option>
+                        <option value="run_out">Run Out</option>
+                        <option value="stumped">Stumped</option>
+                        <option value="hit_wicket">Hit Wicket</option>
+                        <option value="retired_hurt">Retired Hurt</option>
+                    </select>
+                </div>
+                
+                <div id="fielderSection" class="hidden">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Fielder</label>
+                    <select id="fielder" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <!-- Fielders will be populated here -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">New Batsman</label>
+                    <select id="newBatsman" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                        <!-- Available batsmen will be populated here -->
+                    </select>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button onclick="confirmWicket()" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105">
+                        <i class="fas fa-check mr-2"></i>Confirm Wicket
+                    </button>
+                    <button onclick="closeWicketDialog()" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="cricket-scorer.js"></script>
+</body>
+</html>
